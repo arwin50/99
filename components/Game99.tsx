@@ -6,29 +6,32 @@ import WinnerModal from "@/components/winner-modal";
 
 const deck = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
+// Defining the GameState type which holds the game data
 type GameState = {
-  total: number;
-  aiHand: string[];
-  playerHand: string[];
-  isAITurn: boolean;
+  total: number; // The current total of the game
+  aiHand: string[]; // The AI's current hand of cards
+  playerHand: string[]; // The player's current hand of cards
+  isAITurn: boolean; // Whether it's the AI's turn
 };
 
+// A helper function to get the numeric value of a card
 const getCardValue = (card: string) => {
-  if (!isNaN(Number.parseInt(card))) return Number.parseInt(card); // 2–10
+  if (!isNaN(Number.parseInt(card))) return Number.parseInt(card); // For numbers 2–10
   switch (card) {
     case "A":
-      return 1;
+      return 1; // Ace is worth 1
     case "J":
-      return 11;
+      return 11; // Jack is worth 11
     case "Q":
-      return 12;
+      return 12; // Queen is worth 12
     case "K":
-      return 13;
+      return 13; // King is worth 13
     default:
-      return 0;
+      return 0; // In case of unexpected cards
   }
 };
 
+// Minimax algorithm with alpha-beta pruning to determine the best move for AI
 const minimax = (
   state: GameState,
   depth: number,
@@ -37,45 +40,47 @@ const minimax = (
   isMaximizing: boolean
 ): number => {
   if (state.total >= 99) {
-    return isMaximizing ? -1 : 1; // AI loses if it's its turn
+    return isMaximizing ? -1 : 1; // If the total exceeds or equals 99, the game is over (AI loses if it's its turn)
   }
 
-  const hand = isMaximizing ? state.aiHand : state.playerHand;
+  const hand = isMaximizing ? state.aiHand : state.playerHand; // Determine whose turn it is
 
-  if (hand.length === 0 || depth === 0) return 0;
+  if (hand.length === 0 || depth === 0) return 0; // If no cards left or depth limit reached, return 0
 
   let best = isMaximizing ? -Infinity : Infinity;
 
+  // Loop over each card in the hand
   for (let card of hand) {
-    const cardValue = getCardValue(card);
-    const newTotal = state.total + cardValue;
+    const cardValue = getCardValue(card); // Get the card's value
+    const newTotal = state.total + cardValue; // Calculate the new total
 
-    if (newTotal > 99) continue;
+    if (newTotal > 99) continue; // Skip moves that would cause the total to exceed 99
 
-    const newHand = hand.filter((c) => c !== card);
+    const newHand = hand.filter((c) => c !== card); // Remove the used card from the hand
     const nextState: GameState = {
       total: newTotal,
       aiHand: isMaximizing ? newHand : state.aiHand,
       playerHand: isMaximizing ? state.playerHand : newHand,
-      isAITurn: !state.isAITurn,
+      isAITurn: !state.isAITurn, // Switch turns
     };
 
-    const value = minimax(nextState, depth - 1, alpha, beta, !isMaximizing);
+    const value = minimax(nextState, depth - 1, alpha, beta, !isMaximizing); // Recursively call minimax
 
     if (isMaximizing) {
-      best = Math.max(best, value);
-      alpha = Math.max(alpha, value);
+      best = Math.max(best, value); // Maximize the score for the AI
+      alpha = Math.max(alpha, value); // Alpha pruning
     } else {
-      best = Math.min(best, value);
-      beta = Math.min(beta, value);
+      best = Math.min(best, value); // Minimize the score for the player
+      beta = Math.min(beta, value); // Beta pruning
     }
 
-    if (beta <= alpha) break; // Prune
+    if (beta <= alpha) break; // Prune the branch if it’s no longer beneficial
   }
 
-  return best;
+  return best; // Return the best score
 };
 
+// Function to get the best card for AI based on the minimax algorithm
 const bestAIMove = (
   total: number,
   aiHand: string[],
@@ -83,13 +88,14 @@ const bestAIMove = (
   depth: number = 3
 ): string => {
   let bestScore = -Infinity;
-  let bestCard = aiHand[0];
+  let bestCard = aiHand[0]; // Start by picking the first card
 
+  // Loop over each card in the AI's hand
   for (let card of aiHand) {
     const cardValue = getCardValue(card);
     const newTotal = total + cardValue;
 
-    if (newTotal > 99) continue;
+    if (newTotal > 99) continue; // Skip moves that would cause the total to exceed 99
 
     const newHand = aiHand.filter((c) => c !== card);
     const result = minimax(
@@ -111,7 +117,7 @@ const bestAIMove = (
     }
   }
 
-  return bestCard;
+  return bestCard; // Return the best card for AI to play
 };
 
 export default function Game99() {
@@ -125,6 +131,7 @@ export default function Game99() {
   const [winner, setWinner] = useState<string | null>(null);
   const [gameHistory, setGameHistory] = useState<string[]>([]);
 
+  // Function to draw random cards from the deck
   const drawRandomCards = (
     deck: string[],
     count: number,
@@ -132,51 +139,50 @@ export default function Game99() {
   ) => {
     const drawn = [];
 
-    // Filter the deck to remove cards that are in the excludedCards array
+    // Filter the deck to exclude already drawn cards
     const availableDeck = deck.filter((card) => !excludedCards.includes(card));
 
     for (let i = 0; i < count; i++) {
       const randomIndex = Math.floor(Math.random() * availableDeck.length);
       drawn.push(availableDeck[randomIndex]);
-      // Optionally, you can remove the card from availableDeck to avoid drawing duplicates
-      availableDeck.splice(randomIndex, 1);
+      availableDeck.splice(randomIndex, 1); // Remove drawn card from deck
     }
 
     return drawn;
   };
 
+  // Function to handle the player's card pick
   const handleCardPick = (card: string) => {
-    if (!isPlayerTurn || currentTotal >= 99) return;
+    if (!isPlayerTurn || currentTotal >= 99) return; // Player can't pick if it's not their turn or game is over
 
     const value = getCardValue(card);
     const newTotal = currentTotal + value;
 
     if (newTotal >= 99) {
-      setWinner("AI"); // AI wins
+      setWinner("AI"); // AI wins if the total reaches or exceeds 99
       setIsGameOver(true);
       return;
     }
 
-    setCurrentTotal(newTotal);
-    setPlayerPick(card);
-    addToHistory(`You added ${card} (${value}), total: ${newTotal}`);
+    setCurrentTotal(newTotal); // Update the total
+    setPlayerPick(card); // Store the player's pick
+    addToHistory(`You added ${card} (${value}), total: ${newTotal}`); // Add to game history
 
+    // Update player's hand
     setPlayerHand((prev) => {
       const newHand = prev.filter((c) => c !== card);
       const replenished =
         newHand.length === 1
-          ? [
-              ...newHand,
-              ...drawRandomCards(deck, 2, [...newHand]), // Exclude Player's current cards from being drawn
-            ]
+          ? [...newHand, ...drawRandomCards(deck, 2, [...newHand])] // Draw 2 new cards if only 1 card left
           : newHand;
 
       return replenished;
     });
 
-    setIsPlayerTurn(false);
+    setIsPlayerTurn(false); // Switch turn to AI
   };
 
+  // Reset the game to start over
   const resetGame = () => {
     setCurrentTotal(0);
     setPlayerHand(drawRandomCards(deck, 3));
@@ -189,10 +195,12 @@ export default function Game99() {
     setAiPick(null);
   };
 
+  // Add game messages to the history
   const addToHistory = (message: string) => {
-    setGameHistory((prev) => [message, ...prev].slice(0, 5));
+    setGameHistory((prev) => [message, ...prev].slice(0, 5)); // Keep only the last 5 moves in the history
   };
 
+  // Initialize the game state when the component first loads
   useEffect(() => {
     const drawUniqueHand = (deck: string[], count: number) => {
       const tempDeck = [...deck];
@@ -206,43 +214,46 @@ export default function Game99() {
       return hand;
     };
 
-    const player = drawUniqueHand(deck, 3);
-    const ai = drawUniqueHand(deck, 3);
+    const player = drawUniqueHand(deck, 3); // Draw 3 cards for the player
+    const ai = drawUniqueHand(deck, 3); // Draw 3 cards for the AI
     setPlayerHand(player);
     setAiHand(ai);
   }, []);
 
+  // Handle AI's turn using a timeout to simulate thinking
   useEffect(() => {
     if (!isPlayerTurn && aiHand.length > 0 && currentTotal < 99) {
+      console.log(aiHand);
       const timer = setTimeout(() => {
         const card = bestAIMove(currentTotal, aiHand, playerHand);
         const value = getCardValue(card);
         const newTotal = currentTotal + value;
 
         if (newTotal >= 99) {
-          setWinner("player"); // Player wins
+          setWinner("player"); // Player wins if AI exceeds or equals 99
           setIsGameOver(true);
           return;
         }
 
-        setCurrentTotal(newTotal);
-        setAiPick(card);
-        addToHistory(`AI added ${card} (${value}), total: ${newTotal}`);
+        setCurrentTotal(newTotal); // Update total
+        setAiPick(card); // Store AI's pick
+        addToHistory(`AI added ${card} (${value}), total: ${newTotal}`); // Add to history
 
+        // Update AI's hand
         setAiHand((prev) => {
           const newHand = prev.filter((c) => c !== card);
           const replenished =
             newHand.length === 1
-              ? [...newHand, ...drawRandomCards(deck, 2, [...newHand])]
+              ? [...newHand, ...drawRandomCards(deck, 2, [...newHand])] // Draw 2 new cards if only 1 card left
               : newHand;
 
           return replenished;
         });
 
-        setIsPlayerTurn(true);
-      }, 1000);
+        setIsPlayerTurn(true); // Switch turn to player
+      }, 1000); // Delay for AI to think
 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(timer); // Clean up timeout
     }
   }, [isPlayerTurn, aiHand, playerHand, currentTotal]);
 
