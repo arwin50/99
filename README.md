@@ -6,15 +6,16 @@ _Using the terminal:_
    
 2. Open a terminal or command prompt.
    
-3. Navigate to the game directory:
+3. Navigate to the game directory with format: <br />
 `cd path/to/game-directory`
 
-4. Install dependencies:
+4. Install dependencies: <br />
 `npm install`
 
-5. Run development server:
+5. Run development server: <br />
 `npm run dev`
 
-6. Open your browser and go to: `http://localhost:3000`
+6. Open your browser and go to: <br />
+`http://localhost:3000`
 
 7. Enjoy the game!
