@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "99 Card Game",
+  title: "99: The Card Duel",
   description: "A fun card game where you try to avoid going over 99",
 };
 
