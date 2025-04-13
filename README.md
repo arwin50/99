@@ -1,5 +1,9 @@
 ## Instructions on how to run the Game 
 
+_Playing the game through the web:_
+
+1. Access this link: `https://99-arwin50s-projects.vercel.app/`
+
 _Using the terminal:_
 
 1. Ensure Node.js and npm are installed on your system.
