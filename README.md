@@ -2,7 +2,7 @@
 
 _Playing the game through the web:_
 
-1. Access this link: `https://99-arwin50s-projects.vercel.app/`
+1. Access this link: `99-ten.vercel.app`
 
 _Using the terminal:_
 
